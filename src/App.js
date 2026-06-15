@@ -39,10 +39,11 @@ const LANGUAGES = [
 ];
 
 const ClearPlanLogo = ({ size = 28 }) => (
-  <svg width={size} height={size} viewBox="0 0 28 28" fill="none">
-    <rect width="28" height="28" rx="8" fill="#0891b2"/>
-    <path d="M8 14c0-3.314 2.686-6 6-6s6 2.686 6 6-2.686 6-6 6" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
-    <circle cx="14" cy="14" r="2" fill="white"/>
+  <svg width={size} height={size} viewBox="0 0 110 110" fill="none">
+    <rect width="110" height="110" rx="24" fill="#0891b2"/>
+    <rect x="18" y="16" width="76" height="56" rx="13" fill="white" opacity="0.95"/>
+    <path d="M34 72 L26 88 L48 72Z" fill="white" opacity="0.95"/>
+    <path d="M55 24 C46 24 40 30 40 37 C40 41 41.5 44.5 43 47.5 C44.5 50.5 44.5 54.5 46.5 57 C47.5 58.5 49 59 50.5 57.5 C52 56 52.5 52.5 55 52.5 C57.5 52.5 58 56 59.5 57.5 C61 59 62.5 58.5 63.5 57 C65.5 54.5 65.5 50.5 67 47.5 C68.5 44.5 70 41 70 37 C70 30 64 24 55 24Z" fill="#0891b2"/>
   </svg>
 );
 
