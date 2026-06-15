@@ -195,6 +195,51 @@
 }
 .new-btn:hover { background: var(--teal-dark); }
 
+/* ── Multiple treatments ── */
+.treatment-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.treatment-input {
+  flex: 1; margin-bottom: 0 !important;
+}
+.remove-treatment-btn {
+  flex-shrink: 0; width: 32px; height: 32px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface); color: var(--text-3);
+  font-size: 18px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.remove-treatment-btn:hover {
+  background: #fee2e2; color: #ef4444; border-color: #fca5a5;
+}
+.add-treatment-btn {
+  margin-top: 10px; background: none;
+  border: 1.5px dashed var(--teal); color: var(--teal);
+  border-radius: var(--radius-sm); padding: 8px 16px;
+  font-family: inherit; font-size: 13.5px; font-weight: 500;
+  cursor: pointer; width: 100%; transition: background 0.15s;
+}
+.add-treatment-btn:hover { background: var(--teal-light); }
+
+/* ── Combined / Separate toggle ── */
+.multi-toggle {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.multi-toggle-btn {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  padding: 12px 14px; border: 2px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--surface);
+  cursor: pointer; text-align: left; font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+.multi-toggle-btn:hover { border-color: var(--teal-mid); }
+.multi-toggle-btn.active { border-color: var(--teal); background: var(--teal-light); }
+.toggle-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.multi-toggle-btn.active .toggle-title { color: var(--teal-dark); }
+.toggle-desc { font-size: 12px; color: var(--text-3); line-height: 1.4; }
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .main { padding: 20px 14px 40px; }
