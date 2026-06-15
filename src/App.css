@@ -35,11 +35,12 @@
   border-radius: var(--radius); box-shadow: var(--shadow-md); overflow: hidden;
 }
 .form-header {
-  background: linear-gradient(135deg, var(--navy) 0%, #1a4a72 100%);
+  background: var(--teal-light);
+  border-bottom: 1px solid #b2e0ec;
   padding: 28px 32px;
 }
-.form-title { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.02em; margin-bottom: 6px; }
-.form-sub { font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.5; }
+.form-title { font-size: 22px; font-weight: 700; color: var(--navy); letter-spacing: -0.02em; margin-bottom: 6px; }
+.form-sub { font-size: 14px; color: var(--text-2); line-height: 1.5; }
 .form-body { padding: 28px 32px; display: flex; flex-direction: column; gap: 22px; }
 
 /* ── Fields ── */
