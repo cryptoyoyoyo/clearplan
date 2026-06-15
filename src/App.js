@@ -59,6 +59,9 @@ export default function App() {
   const [patientName, setPatientName]       = useState("");
   const [patientEmail, setPatientEmail]     = useState("");
   const [language, setLanguage]             = useState("English");
+  const [appointmentDate, setAppointmentDate] = useState("");
+  const [appointmentTime, setAppointmentTime] = useState("");
+  const [costEstimate, setCostEstimate]       = useState("");
   const [treatments, setTreatments]         = useState([""]);
   const [multiMode, setMultiMode]           = useState("combined");
   const [readingLevel, setReadingLevel]     = useState("standard");
@@ -187,6 +190,9 @@ export default function App() {
     setTreatments([""]);
     setMultiMode("combined");
     setLanguage("English");
+    setAppointmentDate("");
+    setAppointmentTime("");
+    setCostEstimate("");
     setAdditionalNotes("");
     setReadingLevel("standard");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -428,6 +434,36 @@ export default function App() {
                   />
                 </div>
 
+                {/* Appointment + cost */}
+                <div className="field">
+                  <label className="field-label">Next appointment <span className="optional">(optional)</span></label>
+                  <div className="appt-row">
+                    <input
+                      className="field-input"
+                      type="date"
+                      value={appointmentDate}
+                      onChange={(e) => setAppointmentDate(e.target.value)}
+                    />
+                    <input
+                      className="field-input"
+                      type="time"
+                      value={appointmentTime}
+                      onChange={(e) => setAppointmentTime(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label className="field-label">Cost estimate <span className="optional">(optional)</span></label>
+                  <input
+                    className="field-input"
+                    type="text"
+                    placeholder="e.g. £350 – £420"
+                    value={costEstimate}
+                    onChange={(e) => setCostEstimate(e.target.value)}
+                  />
+                </div>
+
                 {error && <div className="error-msg">⚠ {error}</div>}
 
                 <button
@@ -490,6 +526,31 @@ export default function App() {
                   </ReactMarkdown>
                 </div>
                 <div className="explanation-footer">
+                  {(appointmentDate || costEstimate) && (
+                    <div className="appt-summary">
+                      {appointmentDate && (
+                        <div className="appt-item">
+                          <span className="appt-icon">📅</span>
+                          <div>
+                            <div className="appt-label">Next appointment</div>
+                            <div className="appt-value">
+                              {new Date(appointmentDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                              {appointmentTime && ` at ${appointmentTime}`}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {costEstimate && (
+                        <div className="appt-item">
+                          <span className="appt-icon">💷</span>
+                          <div>
+                            <div className="appt-label">Estimated cost</div>
+                            <div className="appt-value">{costEstimate}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <p>{practiceName ? `This explanation was prepared for you by ${practiceName}.` : "This explanation was prepared for you by your dental practice."} Please ask us if you have any questions — we're happy to help.</p>
                 </div>
               </div>
