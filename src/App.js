@@ -570,8 +570,11 @@ export default function App() {
               </div>
             </div>
             <div className="settings-footer">
-              <button className="settings-cancel" onClick={() => setShowSettings(false)}>Cancel</button>
-              <button className="settings-save" onClick={saveSettings}>Save settings</button>
+              <button className="settings-logout" onClick={handleLogout}>Log out</button>
+              <div style={{display:"flex", gap:10}}>
+                <button className="settings-cancel" onClick={() => setShowSettings(false)}>Cancel</button>
+                <button className="settings-save" onClick={saveSettings}>Save settings</button>
+              </div>
             </div>
           </div>
         </div>
@@ -584,9 +587,6 @@ export default function App() {
           <div className="header-actions">
             <button className="btn-settings" onClick={openSettings} title="Practice settings">
               ⚙ Settings
-            </button>
-            <button className="btn-settings" onClick={handleLogout} title="Log out">
-              Log out
             </button>
             {generated && (
               <button className="btn-new" onClick={handleNew}>

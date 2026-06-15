@@ -45,7 +45,7 @@ exports.handler = async (event) => {
 
     // Create session token
     const sessionToken = require("crypto").randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days
+    const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(); // 90 days
 
     await supabase.from("magic_links").insert({
       email: link.email,

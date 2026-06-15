@@ -290,6 +290,12 @@
   padding: 16px 24px; border-top: 1px solid var(--border);
   display: flex; justify-content: flex-end; gap: 10px;
 }
+.settings-logout {
+  background: none; border: 1px solid #fca5a5; color: #ef4444;
+  border-radius: var(--radius-sm); padding: 9px 18px;
+  font-family: inherit; font-size: 14px; cursor: pointer; transition: all 0.12s;
+}
+.settings-logout:hover { background: #fee2e2; }
 .settings-cancel {
   background: none; border: 1px solid var(--border); color: var(--text-2);
   border-radius: var(--radius-sm); padding: 9px 18px;
