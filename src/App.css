@@ -145,18 +145,19 @@
   border-radius: var(--radius); box-shadow: var(--shadow-md); overflow: hidden;
 }
 .explanation-header {
-  background: linear-gradient(135deg, var(--navy) 0%, #1a4a72 100%);
+  background: var(--teal-light);
+  border-bottom: 1px solid #b2e0ec;
   padding: 28px 36px;
 }
 .print-brand { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-.print-brand-name { font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.9); }
+.print-brand-name { font-size: 15px; font-weight: 700; color: var(--navy); }
 .explanation-patient {
-  font-family: 'Lora', serif; font-size: 13px; color: rgba(255,255,255,0.6);
+  font-family: 'Lora', serif; font-size: 13px; color: var(--text-3);
   margin-bottom: 4px; font-style: italic;
 }
 .explanation-treatment {
   font-family: 'Lora', serif; font-size: 20px; font-weight: 500;
-  color: #fff; line-height: 1.3;
+  color: var(--navy); line-height: 1.3;
 }
 
 .explanation-body { padding: 32px 36px; }

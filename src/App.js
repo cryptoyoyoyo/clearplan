@@ -218,12 +218,10 @@ export default function App() {
           <div>
             <div className={forPrint ? "print-brand-name" : "brand-name"}>{practiceName || "ClearPlan"}</div>
             {!forPrint && <div className="brand-tagline">Patient treatment explainer</div>}
-            {forPrint && !practiceName && <div className="brand-tagline" style={{color:"rgba(255,255,255,0.6)"}}>Patient treatment explainer</div>}
           </div>
         </div>
       );
     }
-    // Default ClearPlan branding
     return (
       <div className={forPrint ? "print-brand" : "brand"}>
         <div className={forPrint ? "" : "brand-logo"}>
