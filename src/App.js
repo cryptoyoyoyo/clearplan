@@ -23,6 +23,7 @@ const QUICK_TREATMENTS = [
 
 export default function App() {
   const [patientName, setPatientName]     = useState("");
+  const [patientEmail, setPatientEmail]   = useState("");
   const [treatment, setTreatment]         = useState("");
   const [readingLevel, setReadingLevel]   = useState("standard");
   const [additionalNotes, setAdditionalNotes] = useState("");
@@ -63,10 +64,26 @@ export default function App() {
     navigator.clipboard.writeText(explanation);
   };
 
+  const handleEmail = () => {
+    const name = patientName || "Patient";
+    const subject = encodeURIComponent(`Your Treatment Plan — ${treatment}`);
+    const body = encodeURIComponent(
+      `Dear ${name},\n\n` +
+      `Please find your treatment plan explanation below.\n\n` +
+      `─────────────────────────────\n\n` +
+      explanation +
+      `\n\n─────────────────────────────\n\n` +
+      `If you have any questions, please don't hesitate to get in touch with us.\n\n` +
+      `Kind regards,\nYour Dental Practice`
+    );
+    window.location.href = `mailto:${patientEmail}?subject=${subject}&body=${body}`;
+  };
+
   const handleNew = () => {
     setExplanation("");
     setGenerated(false);
     setPatientName("");
+    setPatientEmail("");
     setTreatment("");
     setAdditionalNotes("");
     setReadingLevel("standard");
@@ -119,6 +136,18 @@ export default function App() {
                     placeholder="e.g. Sarah Johnson"
                     value={patientName}
                     onChange={(e) => setPatientName(e.target.value)}
+                  />
+                </div>
+
+                {/* Patient email */}
+                <div className="field">
+                  <label className="field-label">Patient email <span className="optional">(optional)</span></label>
+                  <input
+                    className="field-input"
+                    type="email"
+                    placeholder="e.g. sarah.johnson@email.com"
+                    value={patientEmail}
+                    onChange={(e) => setPatientEmail(e.target.value)}
                   />
                 </div>
 
@@ -205,6 +234,9 @@ export default function App() {
               </div>
               <div className="action-btns">
                 <button className="action-btn" onClick={handleCopy}>Copy text</button>
+                {patientEmail && (
+                  <button className="action-btn" onClick={handleEmail}>✉ Email to patient</button>
+                )}
                 <button className="action-btn action-btn-primary" onClick={handlePrint}>Print / Save PDF</button>
               </div>
             </div>
