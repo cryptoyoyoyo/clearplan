@@ -21,6 +21,23 @@ const QUICK_TREATMENTS = [
   "Zirconia crown",
 ];
 
+const LANGUAGES = [
+  { value: "English",    flag: "🇬🇧" },
+  { value: "Polish",     flag: "🇵🇱" },
+  { value: "Urdu",       flag: "🇵🇰" },
+  { value: "Punjabi",    flag: "🇵🇰" },
+  { value: "Hindi",      flag: "🇮🇳" },
+  { value: "Bengali",    flag: "🇧🇩" },
+  { value: "Gujarati",   flag: "🇮🇳" },
+  { value: "Somali",     flag: "🇸🇴" },
+  { value: "Arabic",     flag: "🇸🇦" },
+  { value: "Romanian",   flag: "🇷🇴" },
+  { value: "Portuguese", flag: "🇵🇹" },
+  { value: "Spanish",    flag: "🇪🇸" },
+  { value: "French",     flag: "🇫🇷" },
+  { value: "Mandarin",   flag: "🇨🇳" },
+];
+
 const ClearPlanLogo = ({ size = 28 }) => (
   <svg width={size} height={size} viewBox="0 0 28 28" fill="none">
     <rect width="28" height="28" rx="8" fill="#0891b2"/>
@@ -40,6 +57,7 @@ export default function App() {
   // Form state
   const [patientName, setPatientName]       = useState("");
   const [patientEmail, setPatientEmail]     = useState("");
+  const [language, setLanguage]             = useState("English");
   const [treatments, setTreatments]         = useState([""]);
   const [multiMode, setMultiMode]           = useState("combined");
   const [readingLevel, setReadingLevel]     = useState("standard");
@@ -93,7 +111,7 @@ export default function App() {
     const res = await fetch("/.netlify/functions/explain", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ treatment: treatmentText, patientName, readingLevel, additionalNotes }),
+      body: JSON.stringify({ treatment: treatmentText, patientName, readingLevel, additionalNotes, language }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
@@ -167,6 +185,7 @@ export default function App() {
     setPatientEmail("");
     setTreatments([""]);
     setMultiMode("combined");
+    setLanguage("English");
     setAdditionalNotes("");
     setReadingLevel("standard");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -366,6 +385,22 @@ export default function App() {
                 )}
 
                 <div className="field">
+                  <label className="field-label">Language</label>
+                  <div className="language-grid">
+                    {LANGUAGES.map((l) => (
+                      <button
+                        key={l.value}
+                        className={`language-btn ${language === l.value ? "active" : ""}`}
+                        onClick={() => setLanguage(l.value)}
+                      >
+                        <span className="language-flag">{l.flag}</span>
+                        <span className="language-name">{l.value}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="field">
                   <label className="field-label">Reading level</label>
                   <div className="level-grid">
                     {READING_LEVELS.map((l) => (
@@ -418,6 +453,9 @@ export default function App() {
                 {patientName && <span className="meta-patient">For: <strong>{patientName}</strong></span>}
                 <span className="meta-treatment">{activeTreatments.join(", ")}</span>
                 <span className={`meta-level level-${readingLevel}`}>{readingLevel}</span>
+                {language !== "English" && (
+                  <span className="meta-level level-standard">{LANGUAGES.find(l => l.value === language)?.flag} {language}</span>
+                )}
               </div>
               <div className="action-btns">
                 <button className="action-btn" onClick={handleCopy}>Copy text</button>
