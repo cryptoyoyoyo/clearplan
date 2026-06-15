@@ -54,6 +54,160 @@ const ClearPlanLogo = ({ size = 28 }) => (
 );
 
 export default function App() {
+  // Auth state
+  const [session, setSession]             = useState(null);
+  const [authView, setAuthView]           = useState("login"); // "login" | "sent" | "app" | "admin"
+  const [authEmail, setAuthEmail]         = useState("");
+  const [authLoading, setAuthLoading]     = useState(false);
+  const [authError, setAuthError]         = useState(null);
+  const [authChecking, setAuthChecking]   = useState(true);
+
+  // Admin state
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminAuthed, setAdminAuthed]     = useState(false);
+  const [adminError, setAdminError]       = useState(null);
+  const [practices, setPractices]         = useState([]);
+  const [newEmail, setNewEmail]           = useState("");
+  const [newName, setNewName]             = useState("");
+  const [adminMsg, setAdminMsg]           = useState(null);
+
+  // Check for magic link token in URL or existing session on load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      verifyToken(token);
+    } else {
+      checkSession();
+    }
+    // Check if admin route
+    if (window.location.pathname === "/admin") setAuthView("admin");
+  }, []);
+
+  const verifyToken = async (token) => {
+    try {
+      const res = await fetch("/.netlify/functions/auth-verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      localStorage.setItem("cp_session", data.sessionToken);
+      localStorage.setItem("cp_practice", JSON.stringify(data.practice));
+      setSession(data.practice);
+      setAuthView("app");
+      window.history.replaceState({}, "", "/");
+    } catch (err) {
+      setAuthError(err.message);
+      setAuthView("login");
+    } finally {
+      setAuthChecking(false);
+    }
+  };
+
+  const checkSession = async () => {
+    const sessionToken = localStorage.getItem("cp_session");
+    if (!sessionToken) { setAuthChecking(false); return; }
+    try {
+      const res = await fetch("/.netlify/functions/auth-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionToken }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSession(data.practice);
+        setAuthView("app");
+      } else {
+        localStorage.removeItem("cp_session");
+        localStorage.removeItem("cp_practice");
+      }
+    } catch (err) {}
+    setAuthChecking(false);
+  };
+
+  const requestMagicLink = async () => {
+    if (!authEmail.trim()) return;
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const res = await fetch("/.netlify/functions/auth-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: authEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setAuthView("sent");
+    } catch (err) {
+      setAuthError(err.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("cp_session");
+    localStorage.removeItem("cp_practice");
+    setSession(null);
+    setAuthView("login");
+    setAuthEmail("");
+  };
+
+  // Admin functions
+  const adminCall = async (action, extra = {}) => {
+    const res = await fetch("/.netlify/functions/admin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, password: adminPassword, ...extra }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    return data;
+  };
+
+  const adminLogin = async () => {
+    setAdminError(null);
+    try {
+      const data = await adminCall("list");
+      setPractices(data.practices);
+      setAdminAuthed(true);
+    } catch (err) {
+      setAdminError("Invalid password");
+    }
+  };
+
+  const adminAddPractice = async () => {
+    if (!newEmail.trim()) return;
+    try {
+      await adminCall("add", { email: newEmail, name: newName });
+      setNewEmail(""); setNewName("");
+      setAdminMsg("Practice added successfully");
+      const data = await adminCall("list");
+      setPractices(data.practices);
+    } catch (err) {
+      setAdminMsg(`Error: ${err.message}`);
+    }
+  };
+
+  const adminToggle = async (id) => {
+    try {
+      await adminCall("toggle", { practiceId: id });
+      const data = await adminCall("list");
+      setPractices(data.practices);
+    } catch (err) {}
+  };
+
+  const adminRemove = async (id) => {
+    if (!window.confirm("Remove this practice? This cannot be undone.")) return;
+    try {
+      await adminCall("remove", { practiceId: id });
+      const data = await adminCall("list");
+      setPractices(data.practices);
+    } catch (err) {}
+  };
+
   // Practice branding
   const [practiceName, setPracticeName]   = useState(() => localStorage.getItem("cp_practiceName") || "");
   const [practiceLogo, setPracticeLogo]   = useState(() => localStorage.getItem("cp_practiceLogo") || "");
@@ -235,6 +389,142 @@ export default function App() {
     );
   };
 
+  // ── Auth: checking session ──
+  if (authChecking) {
+    return (
+      <div className="auth-screen">
+        <ClearPlanLogo size={40} />
+        <p className="auth-checking">Loading…</p>
+      </div>
+    );
+  }
+
+  // ── Auth: login screen ──
+  if (authView === "login") {
+    return (
+      <div className="auth-screen">
+        <div className="auth-card">
+          <div className="auth-logo"><ClearPlanLogo size={44} /></div>
+          <h1 className="auth-title">ClearPlan</h1>
+          <p className="auth-sub">Enter your email to log in</p>
+          {authError && <div className="error-msg" style={{marginBottom: 16}}>⚠ {authError}</div>}
+          <input
+            className="field-input"
+            type="email"
+            placeholder="your@practice.com"
+            value={authEmail}
+            onChange={e => setAuthEmail(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && requestMagicLink()}
+            style={{marginBottom: 12}}
+          />
+          <button className="generate-btn" onClick={requestMagicLink} disabled={!authEmail.trim() || authLoading}>
+            {authLoading ? <><span className="spinner" /> Sending…</> : "Send login link"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Auth: link sent ──
+  if (authView === "sent") {
+    return (
+      <div className="auth-screen">
+        <div className="auth-card">
+          <div className="auth-logo"><ClearPlanLogo size={44} /></div>
+          <h1 className="auth-title">Check your email</h1>
+          <p className="auth-sub">We've sent a login link to <strong>{authEmail}</strong>. Click the link in the email to log in.</p>
+          <p className="auth-hint">The link expires in 15 minutes. Check your spam folder if you don't see it.</p>
+          <button className="auth-back" onClick={() => { setAuthView("login"); setAuthError(null); }}>← Try a different email</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Admin screen ──
+  if (authView === "admin") {
+    return (
+      <div className="app">
+        <header className="header">
+          <div className="header-inner">
+            <div className="brand">
+              <ClearPlanLogo size={28} />
+              <div>
+                <div className="brand-name">ClearPlan</div>
+                <div className="brand-tagline">Admin panel</div>
+              </div>
+            </div>
+            <button className="btn-settings" onClick={() => window.location.href = "/"}>← Back to app</button>
+          </div>
+        </header>
+        <main className="main">
+          {!adminAuthed ? (
+            <div className="form-card" style={{maxWidth: 400, margin: "0 auto"}}>
+              <div className="form-header"><h2 className="form-title">Admin login</h2></div>
+              <div className="form-body">
+                {adminError && <div className="error-msg">⚠ {adminError}</div>}
+                <div className="field">
+                  <label className="field-label">Admin password</label>
+                  <input className="field-input" type="password" value={adminPassword}
+                    onChange={e => setAdminPassword(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && adminLogin()} />
+                </div>
+                <button className="generate-btn" onClick={adminLogin}>Log in</button>
+              </div>
+            </div>
+          ) : (
+            <div style={{display: "flex", flexDirection: "column", gap: 24}}>
+              {/* Add practice */}
+              <div className="form-card">
+                <div className="form-header"><h2 className="form-title">Add a practice</h2></div>
+                <div className="form-body">
+                  {adminMsg && <div className={adminMsg.startsWith("Error") ? "error-msg" : "success-msg"}>{adminMsg}</div>}
+                  <div className="field">
+                    <label className="field-label">Practice name</label>
+                    <input className="field-input" type="text" placeholder="e.g. Smile Dental Practice"
+                      value={newName} onChange={e => setNewName(e.target.value)} />
+                  </div>
+                  <div className="field">
+                    <label className="field-label">Email address <span className="required">*</span></label>
+                    <input className="field-input" type="email" placeholder="e.g. info@smiledental.co.uk"
+                      value={newEmail} onChange={e => setNewEmail(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && adminAddPractice()} />
+                  </div>
+                  <button className="generate-btn" onClick={adminAddPractice} disabled={!newEmail.trim()}>Add practice</button>
+                </div>
+              </div>
+
+              {/* Practice list */}
+              <div className="form-card">
+                <div className="form-header"><h2 className="form-title">All practices ({practices.length})</h2></div>
+                <div className="form-body">
+                  {practices.length === 0 && <p style={{color: "var(--text-3)"}}>No practices yet.</p>}
+                  {practices.map(p => (
+                    <div key={p.id} className="practice-row">
+                      <div className="practice-info">
+                        <div className="practice-name">{p.name || "—"}</div>
+                        <div className="practice-email">{p.email}</div>
+                        <div className="practice-date">Added {new Date(p.created_at).toLocaleDateString("en-GB")}</div>
+                      </div>
+                      <div className="practice-actions">
+                        <span className={`practice-status ${p.is_active ? "active" : "inactive"}`}>
+                          {p.is_active ? "Active" : "Disabled"}
+                        </span>
+                        <button className="admin-btn" onClick={() => adminToggle(p.id)}>
+                          {p.is_active ? "Disable" : "Enable"}
+                        </button>
+                        <button className="admin-btn admin-btn-danger" onClick={() => adminRemove(p.id)}>Remove</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       {/* Settings modal */}
@@ -294,6 +584,9 @@ export default function App() {
           <div className="header-actions">
             <button className="btn-settings" onClick={openSettings} title="Practice settings">
               ⚙ Settings
+            </button>
+            <button className="btn-settings" onClick={handleLogout} title="Log out">
+              Log out
             </button>
             {generated && (
               <button className="btn-new" onClick={handleNew}>

@@ -328,6 +328,58 @@
 }
 .logo-remove-btn:hover { background: #fee2e2; }
 
+/* ── Auth screens ── */
+.auth-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--surface-2); padding: 24px;
+}
+.auth-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-md);
+  padding: 40px 36px; width: 100%; max-width: 400px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.auth-logo { display: flex; justify-content: center; margin-bottom: 8px; }
+.auth-title { font-size: 24px; font-weight: 700; color: var(--navy); text-align: center; }
+.auth-sub { font-size: 14px; color: var(--text-2); text-align: center; line-height: 1.5; }
+.auth-hint { font-size: 13px; color: var(--text-3); text-align: center; line-height: 1.5; }
+.auth-checking { color: var(--text-3); font-size: 14px; margin-top: 16px; }
+.auth-back {
+  background: none; border: none; color: var(--teal); font-family: inherit;
+  font-size: 13px; cursor: pointer; text-align: center; padding: 4px;
+}
+.auth-back:hover { text-decoration: underline; }
+
+/* ── Admin ── */
+.success-msg {
+  background: #f0fdf4; border: 1px solid #86efac; color: #166534;
+  padding: 12px 16px; border-radius: var(--radius-sm); font-size: 14px;
+}
+.practice-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.practice-row:last-child { border-bottom: none; }
+.practice-info { display: flex; flex-direction: column; gap: 2px; }
+.practice-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.practice-email { font-size: 13px; color: var(--text-2); }
+.practice-date { font-size: 12px; color: var(--text-3); }
+.practice-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.practice-status {
+  font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.practice-status.active { background: #dcfce7; color: #166534; }
+.practice-status.inactive { background: #fee2e2; color: #991b1b; }
+.admin-btn {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text-2);
+  border-radius: var(--radius-sm); padding: 6px 14px;
+  font-family: inherit; font-size: 13px; cursor: pointer; transition: all 0.12s;
+}
+.admin-btn:hover { border-color: var(--teal); color: var(--teal); }
+.admin-btn-danger:hover { border-color: #ef4444; color: #ef4444; }
+
 /* ── Input with prefix ── */
 .input-prefix-wrap {
   display: flex; align-items: stretch;
