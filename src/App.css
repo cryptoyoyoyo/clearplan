@@ -327,6 +327,21 @@
 }
 .logo-remove-btn:hover { background: #fee2e2; }
 
+/* ── Input with prefix ── */
+.input-prefix-wrap {
+  display: flex; align-items: stretch;
+}
+.input-prefix {
+  display: flex; align-items: center; padding: 0 12px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-right: none; border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  font-size: 15px; font-weight: 600; color: var(--text-2);
+}
+.input-with-prefix {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important;
+  flex: 1;
+}
+
 /* ── Appointment + cost ── */
 .appt-row {
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
@@ -362,12 +377,31 @@
 .language-flag { font-size: 15px; line-height: 1; }
 .language-name { font-size: 12.5px; }
 
+/* ── Tone selector ── */
+.tone-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+.tone-card {
+  border: 2px solid var(--border); border-radius: var(--radius-sm);
+  padding: 12px 14px; background: var(--surface);
+  cursor: pointer; text-align: left; transition: all 0.12s;
+  display: flex; flex-direction: column; gap: 4px;
+  font-family: inherit;
+}
+.tone-card:hover { border-color: var(--teal-mid); }
+.tone-card.active { border-color: var(--teal); background: var(--teal-light); }
+.tone-emoji { font-size: 18px; line-height: 1; margin-bottom: 2px; }
+.tone-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.tone-card.active .tone-label { color: var(--teal-dark); }
+.tone-desc { font-size: 12px; color: var(--text-3); line-height: 1.4; }
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .main { padding: 20px 14px 40px; }
   .form-header { padding: 20px; }
   .form-body { padding: 20px; }
   .level-grid { grid-template-columns: 1fr; }
+  .tone-grid { grid-template-columns: 1fr; }
   .language-grid { grid-template-columns: repeat(3, 1fr); }
   .explanation-header { padding: 20px; }
   .explanation-body { padding: 20px; }

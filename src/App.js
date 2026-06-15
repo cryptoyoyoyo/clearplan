@@ -8,6 +8,12 @@ const READING_LEVELS = [
   { value: "detailed", label: "Detailed", desc: "More in-depth for patients who want full info" },
 ];
 
+const TONES = [
+  { value: "warm",     label: "Warm & reassuring",  desc: "Gentle and comforting — ideal for anxious patients",    emoji: "🤝" },
+  { value: "friendly", label: "Friendly & upbeat",  desc: "Light and positive — great for routine treatments",     emoji: "😊" },
+  { value: "clinical", label: "Calm & clinical",    desc: "Straightforward facts — for patients who want clarity", emoji: "📋" },
+];
+
 const QUICK_TREATMENTS = [
   "Root canal treatment",
   "Dental implant",
@@ -65,6 +71,7 @@ export default function App() {
   const [treatments, setTreatments]         = useState([""]);
   const [multiMode, setMultiMode]           = useState("combined");
   const [readingLevel, setReadingLevel]     = useState("standard");
+  const [tone, setTone]                     = useState("warm");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [explanations, setExplanations]     = useState([]);
   const [loading, setLoading]               = useState(false);
@@ -115,7 +122,7 @@ export default function App() {
     const res = await fetch("/.netlify/functions/explain", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ treatment: treatmentText, patientName, readingLevel, additionalNotes, language }),
+      body: JSON.stringify({ treatment: treatmentText, patientName, readingLevel, additionalNotes, language, tone }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
@@ -190,6 +197,7 @@ export default function App() {
     setTreatments([""]);
     setMultiMode("combined");
     setLanguage("English");
+    setTone("warm");
     setAppointmentDate("");
     setAppointmentTime("");
     setCostEstimate("");
@@ -423,6 +431,24 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* Tone */}
+                <div className="field">
+                  <label className="field-label">Tone</label>
+                  <div className="tone-grid">
+                    {TONES.map((t) => (
+                      <button
+                        key={t.value}
+                        className={`tone-card ${tone === t.value ? "active" : ""}`}
+                        onClick={() => setTone(t.value)}
+                      >
+                        <span className="tone-emoji">{t.emoji}</span>
+                        <span className="tone-label">{t.label}</span>
+                        <span className="tone-desc">{t.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="field">
                   <label className="field-label">Additional notes <span className="optional">(optional)</span></label>
                   <textarea
@@ -455,13 +481,16 @@ export default function App() {
 
                 <div className="field">
                   <label className="field-label">Cost estimate <span className="optional">(optional)</span></label>
-                  <input
-                    className="field-input"
-                    type="text"
-                    placeholder="e.g. £350 – £420"
-                    value={costEstimate}
-                    onChange={(e) => setCostEstimate(e.target.value)}
-                  />
+                  <div className="input-prefix-wrap">
+                    <span className="input-prefix">£</span>
+                    <input
+                      className="field-input input-with-prefix"
+                      type="text"
+                      placeholder="e.g. 350 – 420"
+                      value={costEstimate}
+                      onChange={(e) => setCostEstimate(e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 {error && <div className="error-msg">⚠ {error}</div>}
@@ -545,7 +574,7 @@ export default function App() {
                           <span className="appt-icon">💷</span>
                           <div>
                             <div className="appt-label">Estimated cost</div>
-                            <div className="appt-value">{costEstimate}</div>
+                            <div className="appt-value">£{costEstimate}</div>
                           </div>
                         </div>
                       )}
