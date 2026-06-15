@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import "./App.css";
 
@@ -21,14 +21,30 @@ const QUICK_TREATMENTS = [
   "Zirconia crown",
 ];
 
+const ClearPlanLogo = ({ size = 28 }) => (
+  <svg width={size} height={size} viewBox="0 0 28 28" fill="none">
+    <rect width="28" height="28" rx="8" fill="#0891b2"/>
+    <path d="M8 14c0-3.314 2.686-6 6-6s6 2.686 6 6-2.686 6-6 6" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
+    <circle cx="14" cy="14" r="2" fill="white"/>
+  </svg>
+);
+
 export default function App() {
+  // Practice branding
+  const [practiceName, setPracticeName]   = useState(() => localStorage.getItem("cp_practiceName") || "");
+  const [practiceLogo, setPracticeLogo]   = useState(() => localStorage.getItem("cp_practiceLogo") || "");
+  const [showSettings, setShowSettings]   = useState(false);
+  const [settingsDraft, setSettingsDraft] = useState({ name: "", logo: "" });
+  const logoInputRef = useRef(null);
+
+  // Form state
   const [patientName, setPatientName]       = useState("");
   const [patientEmail, setPatientEmail]     = useState("");
   const [treatments, setTreatments]         = useState([""]);
-  const [multiMode, setMultiMode]           = useState("combined"); // "combined" | "separate"
+  const [multiMode, setMultiMode]           = useState("combined");
   const [readingLevel, setReadingLevel]     = useState("standard");
   const [additionalNotes, setAdditionalNotes] = useState("");
-  const [explanations, setExplanations]     = useState([]); // [{treatment, text}]
+  const [explanations, setExplanations]     = useState([]);
   const [loading, setLoading]               = useState(false);
   const [error, setError]                   = useState(null);
   const [generated, setGenerated]           = useState(false);
@@ -37,12 +53,38 @@ export default function App() {
   const activeTreatments = treatments.filter(t => t.trim());
   const hasMultiple = treatments.length > 1;
 
+  // Settings handlers
+  const openSettings = () => {
+    setSettingsDraft({ name: practiceName, logo: practiceLogo });
+    setShowSettings(true);
+  };
+
+  const saveSettings = () => {
+    setPracticeName(settingsDraft.name);
+    setPracticeLogo(settingsDraft.logo);
+    localStorage.setItem("cp_practiceName", settingsDraft.name);
+    localStorage.setItem("cp_practiceLogo", settingsDraft.logo);
+    setShowSettings(false);
+  };
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setSettingsDraft(d => ({ ...d, logo: ev.target.result }));
+    reader.readAsDataURL(file);
+  };
+
+  const removeLogo = () => {
+    setSettingsDraft(d => ({ ...d, logo: "" }));
+    if (logoInputRef.current) logoInputRef.current.value = "";
+  };
+
+  // Treatment handlers
   const updateTreatment = (index, value) => {
     setTreatments(prev => prev.map((t, i) => i === index ? value : t));
   };
-
   const addTreatment = () => setTreatments(prev => [...prev, ""]);
-
   const removeTreatment = (index) => {
     setTreatments(prev => prev.length > 1 ? prev.filter((_, i) => i !== index) : prev);
   };
@@ -67,14 +109,12 @@ export default function App() {
 
     try {
       if (!hasMultiple || multiMode === "combined") {
-        // Single or combined: join treatments into one prompt
         const combinedTreatment = activeTreatments.length === 1
           ? activeTreatments[0]
           : activeTreatments.map((t, i) => `${i + 1}. ${t}`).join("\n");
         const text = await fetchExplanation(combinedTreatment);
         setExplanations([{ treatment: activeTreatments.join(", "), text }]);
       } else {
-        // Separate: generate one explanation per treatment
         const results = [];
         for (const t of activeTreatments) {
           const text = await fetchExplanation(t);
@@ -102,6 +142,7 @@ export default function App() {
 
   const handleEmail = () => {
     const name = patientName || "Patient";
+    const practiceLabel = practiceName || "Your Dental Practice";
     const treatmentLabel = activeTreatments.join(", ");
     const subject = encodeURIComponent(`Your Treatment Plan — ${treatmentLabel}`);
     const allText = explanations.map(e =>
@@ -114,7 +155,7 @@ export default function App() {
       allText +
       `\n\n─────────────────────────────\n\n` +
       `If you have any questions, please don't hesitate to get in touch with us.\n\n` +
-      `Kind regards,\nYour Dental Practice`
+      `Kind regards,\n${practiceLabel}`
     );
     window.location.href = `mailto:${patientEmail}?subject=${subject}&body=${body}`;
   };
@@ -131,29 +172,103 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Practice brand block — used in both header and printout
+  const PracticeBrand = ({ forPrint = false }) => {
+    if (practiceName || practiceLogo) {
+      return (
+        <div className={forPrint ? "print-brand" : "brand"}>
+          {practiceLogo
+            ? <img src={practiceLogo} alt={practiceName} className={forPrint ? "print-logo" : "practice-logo"} />
+            : <ClearPlanLogo size={forPrint ? 22 : 28} />
+          }
+          <div>
+            <div className={forPrint ? "print-brand-name" : "brand-name"}>{practiceName || "ClearPlan"}</div>
+            {!forPrint && <div className="brand-tagline">Patient treatment explainer</div>}
+            {forPrint && !practiceName && <div className="brand-tagline" style={{color:"rgba(255,255,255,0.6)"}}>Patient treatment explainer</div>}
+          </div>
+        </div>
+      );
+    }
+    // Default ClearPlan branding
+    return (
+      <div className={forPrint ? "print-brand" : "brand"}>
+        <div className={forPrint ? "" : "brand-logo"}>
+          <ClearPlanLogo size={forPrint ? 22 : 28} />
+        </div>
+        <div>
+          <div className={forPrint ? "print-brand-name" : "brand-name"}>ClearPlan</div>
+          {!forPrint && <div className="brand-tagline">Patient treatment explainer</div>}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="app">
+      {/* Settings modal */}
+      {showSettings && (
+        <div className="settings-overlay" onClick={() => setShowSettings(false)}>
+          <div className="settings-modal" onClick={e => e.stopPropagation()}>
+            <div className="settings-header">
+              <h2 className="settings-title">Practice settings</h2>
+              <button className="settings-close" onClick={() => setShowSettings(false)}>×</button>
+            </div>
+            <div className="settings-body">
+              <div className="field">
+                <label className="field-label">Practice name</label>
+                <input
+                  className="field-input"
+                  type="text"
+                  placeholder="e.g. Smile Dental Practice"
+                  value={settingsDraft.name}
+                  onChange={e => setSettingsDraft(d => ({ ...d, name: e.target.value }))}
+                />
+              </div>
+              <div className="field">
+                <label className="field-label">Practice logo <span className="optional">(optional)</span></label>
+                {settingsDraft.logo ? (
+                  <div className="logo-preview-row">
+                    <img src={settingsDraft.logo} alt="Logo preview" className="logo-preview" />
+                    <button className="logo-remove-btn" onClick={removeLogo}>Remove logo</button>
+                  </div>
+                ) : (
+                  <div className="logo-upload-area" onClick={() => logoInputRef.current?.click()}>
+                    <span className="logo-upload-icon">↑</span>
+                    <span className="logo-upload-text">Click to upload logo</span>
+                    <span className="logo-upload-hint">PNG or JPG, ideally with a transparent background</span>
+                  </div>
+                )}
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleLogoUpload}
+                />
+              </div>
+            </div>
+            <div className="settings-footer">
+              <button className="settings-cancel" onClick={() => setShowSettings(false)}>Cancel</button>
+              <button className="settings-save" onClick={saveSettings}>Save settings</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="header no-print">
         <div className="header-inner">
-          <div className="brand">
-            <div className="brand-logo">
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                <rect width="28" height="28" rx="8" fill="#0891b2"/>
-                <path d="M8 14c0-3.314 2.686-6 6-6s6 2.686 6 6-2.686 6-6 6" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
-                <circle cx="14" cy="14" r="2" fill="white"/>
-              </svg>
-            </div>
-            <div>
-              <div className="brand-name">ClearPlan</div>
-              <div className="brand-tagline">Patient treatment explainer</div>
-            </div>
-          </div>
-          {generated && (
-            <button className="btn-new no-print" onClick={handleNew}>
-              + New explanation
+          <PracticeBrand />
+          <div className="header-actions">
+            <button className="btn-settings" onClick={openSettings} title="Practice settings">
+              ⚙ Settings
             </button>
-          )}
+            {generated && (
+              <button className="btn-new" onClick={handleNew}>
+                + New explanation
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -168,7 +283,6 @@ export default function App() {
               </div>
 
               <div className="form-body">
-                {/* Patient name */}
                 <div className="field">
                   <label className="field-label">Patient name <span className="optional">(optional)</span></label>
                   <input
@@ -180,7 +294,6 @@ export default function App() {
                   />
                 </div>
 
-                {/* Patient email */}
                 <div className="field">
                   <label className="field-label">Patient email <span className="optional">(optional)</span></label>
                   <input
@@ -192,12 +305,10 @@ export default function App() {
                   />
                 </div>
 
-                {/* Treatments */}
                 <div className="field">
                   <label className="field-label">
                     Treatment{treatments.length > 1 ? "s" : ""} <span className="required">*</span>
                   </label>
-
                   {treatments.map((t, index) => (
                     <div key={index} className="treatment-row">
                       <input
@@ -209,15 +320,10 @@ export default function App() {
                         onKeyDown={(e) => e.key === "Enter" && generate()}
                       />
                       {treatments.length > 1 && (
-                        <button
-                          className="remove-treatment-btn"
-                          onClick={() => removeTreatment(index)}
-                          title="Remove"
-                        >×</button>
+                        <button className="remove-treatment-btn" onClick={() => removeTreatment(index)} title="Remove">×</button>
                       )}
                     </div>
                   ))}
-
                   <div className="quick-picks">
                     {QUICK_TREATMENTS.map((qt) => (
                       <button
@@ -231,18 +337,12 @@ export default function App() {
                             setTreatments(prev => [...prev, qt]);
                           }
                         }}
-                      >
-                        {qt}
-                      </button>
+                      >{qt}</button>
                     ))}
                   </div>
-
-                  <button className="add-treatment-btn" onClick={addTreatment}>
-                    + Add another treatment
-                  </button>
+                  <button className="add-treatment-btn" onClick={addTreatment}>+ Add another treatment</button>
                 </div>
 
-                {/* Combined / Separate toggle — only shown with multiple treatments */}
                 {hasMultiple && (
                   <div className="field">
                     <label className="field-label">Explanation style</label>
@@ -265,7 +365,6 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Reading level */}
                 <div className="field">
                   <label className="field-label">Reading level</label>
                   <div className="level-grid">
@@ -282,7 +381,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Additional notes */}
                 <div className="field">
                   <label className="field-label">Additional notes <span className="optional">(optional)</span></label>
                   <textarea
@@ -315,7 +413,6 @@ export default function App() {
         {/* Output */}
         {generated && explanations.length > 0 && (
           <div className="output-section" ref={outputRef}>
-            {/* Action bar */}
             <div className="action-bar no-print">
               <div className="action-meta">
                 {patientName && <span className="meta-patient">For: <strong>{patientName}</strong></span>}
@@ -331,18 +428,10 @@ export default function App() {
               </div>
             </div>
 
-            {/* Printable cards — one per explanation */}
             {explanations.map((exp, index) => (
               <div key={index} className="explanation-card print-area">
                 <div className="explanation-header">
-                  <div className="print-brand">
-                    <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
-                      <rect width="28" height="28" rx="8" fill="#0891b2"/>
-                      <path d="M8 14c0-3.314 2.686-6 6-6s6 2.686 6 6-2.686 6-6 6" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
-                      <circle cx="14" cy="14" r="2" fill="white"/>
-                    </svg>
-                    <span className="print-brand-name">ClearPlan</span>
-                  </div>
+                  <PracticeBrand forPrint={true} />
                   {patientName && (
                     <div className="explanation-patient">Your treatment plan, {patientName}</div>
                   )}
@@ -362,7 +451,7 @@ export default function App() {
                   </ReactMarkdown>
                 </div>
                 <div className="explanation-footer">
-                  <p>This explanation was prepared for you by your dental practice. Please ask us if you have any questions — we're happy to help.</p>
+                  <p>{practiceName ? `This explanation was prepared for you by ${practiceName}.` : "This explanation was prepared for you by your dental practice."} Please ask us if you have any questions — we're happy to help.</p>
                 </div>
               </div>
             ))}

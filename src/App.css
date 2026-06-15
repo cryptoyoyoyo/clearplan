@@ -240,6 +240,92 @@
 .multi-toggle-btn.active .toggle-title { color: var(--teal-dark); }
 .toggle-desc { font-size: 12px; color: var(--text-3); line-height: 1.4; }
 
+/* ── Practice branding ── */
+.practice-logo {
+  height: 36px; width: auto; max-width: 120px;
+  object-fit: contain;
+}
+.print-logo {
+  height: 36px; width: auto; max-width: 140px;
+  object-fit: contain;
+}
+
+/* ── Header actions ── */
+.header-actions { display: flex; align-items: center; gap: 8px; }
+.btn-settings {
+  background: none; border: 1px solid var(--border);
+  color: var(--text-3); border-radius: 20px;
+  padding: 6px 14px; font-family: inherit; font-size: 13px;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-settings:hover { border-color: var(--teal); color: var(--teal); }
+
+/* ── Settings modal ── */
+.settings-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  z-index: 100; display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.settings-modal {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  width: 100%; max-width: 460px;
+  display: flex; flex-direction: column;
+}
+.settings-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-title { font-size: 17px; font-weight: 700; color: var(--navy); }
+.settings-close {
+  background: none; border: none; font-size: 22px; color: var(--text-3);
+  cursor: pointer; line-height: 1; padding: 0 4px;
+}
+.settings-close:hover { color: var(--text); }
+.settings-body { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.settings-footer {
+  padding: 16px 24px; border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+.settings-cancel {
+  background: none; border: 1px solid var(--border); color: var(--text-2);
+  border-radius: var(--radius-sm); padding: 9px 18px;
+  font-family: inherit; font-size: 14px; cursor: pointer; transition: all 0.12s;
+}
+.settings-cancel:hover { border-color: var(--text-2); }
+.settings-save {
+  background: var(--teal); color: #fff; border: none;
+  border-radius: var(--radius-sm); padding: 9px 20px;
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+}
+.settings-save:hover { background: var(--teal-dark); }
+
+/* ── Logo upload ── */
+.logo-upload-area {
+  border: 2px dashed var(--border); border-radius: var(--radius-sm);
+  padding: 24px 16px; text-align: center; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.logo-upload-area:hover { border-color: var(--teal); background: var(--teal-light); }
+.logo-upload-icon { font-size: 22px; color: var(--teal); }
+.logo-upload-text { font-size: 14px; font-weight: 500; color: var(--text-2); }
+.logo-upload-hint { font-size: 12px; color: var(--text-3); }
+.logo-preview-row { display: flex; align-items: center; gap: 16px; }
+.logo-preview {
+  height: 48px; width: auto; max-width: 160px;
+  object-fit: contain; border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px; background: #f8f8f8;
+}
+.logo-remove-btn {
+  background: none; border: 1px solid #fca5a5; color: #ef4444;
+  border-radius: var(--radius-sm); padding: 6px 14px;
+  font-family: inherit; font-size: 13px; cursor: pointer; transition: all 0.12s;
+}
+.logo-remove-btn:hover { background: #fee2e2; }
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .main { padding: 20px 14px 40px; }
