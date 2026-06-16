@@ -21,7 +21,7 @@ exports.handler = async (event) => {
     // Check practice is approved and active
     const { data: practice, error } = await supabase
       .from("practices")
-      .select("id, name, is_active")
+      .select("id, name, is_active, is_paying, trial_ends_at")
       .eq("email", normalised)
       .single();
 
@@ -33,6 +33,10 @@ exports.handler = async (event) => {
       return { statusCode: 403, body: JSON.stringify({ error: "This account has been disabled. Please contact DentalExplain." }) };
     }
 
+    if (!practice.is_paying && practice.trial_ends_at && new Date(practice.trial_ends_at) < new Date()) {
+      return { statusCode: 403, body: JSON.stringify({ error: "Your free trial has ended. Please subscribe to keep using DentalExplain." }) };
+    }
+
     // Generate token
     const token = require("crypto").randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutes
@@ -42,6 +46,13 @@ exports.handler = async (event) => {
     // Build magic link URL
     const siteUrl = process.env.URL || "http://localhost:3000";
     const magicLink = `${siteUrl}/?token=${token}`;
+
+    // Build trial reminder text, shown only for non-paying accounts with an active trial
+    let trialNotice = "";
+    if (!practice.is_paying && practice.trial_ends_at) {
+      const trialEndDate = new Date(practice.trial_ends_at).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+      trialNotice = `<p style="color: #0e7490; font-size: 14px; line-height: 1.5; background: #e0f4f8; padding: 12px 16px; border-radius: 8px; margin-bottom: 24px;">Your free trial ends on <strong>${trialEndDate}</strong>.</p>`;
+    }
 
     // Send email
     await resend.emails.send({
@@ -59,7 +70,8 @@ exports.handler = async (event) => {
             Click the button below to log in to DentalExplain. This link expires in 15 minutes.
           </p>
           <a href="${magicLink}" style="display: inline-block; background: #0891b2; color: white; padding: 13px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Log in to DentalExplain</a>
-          <p style="color: #94a3b8; font-size: 13px; margin-top: 24px;">If you didn't request this, you can safely ignore this email.</p>
+          <p style="color: #94a3b8; font-size: 13px; margin: 24px 0;">If you didn't request this, you can safely ignore this email.</p>
+          ${trialNotice}
         </div>
       `,
     });

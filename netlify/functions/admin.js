@@ -1,9 +1,11 @@
 const { createClient } = require("@supabase/supabase-js");
+const { Resend } = require("resend");
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
@@ -38,6 +40,39 @@ exports.handler = async (event) => {
         .select()
         .single();
       if (error) throw error;
+
+      // Send welcome email with trial details
+      const siteUrl = process.env.URL || "http://localhost:3000";
+      const trialEndDate = new Date(trialEndsAt).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+
+      try {
+        await resend.emails.send({
+          from: "DentalExplain <hello@dentalexplain.com>",
+          to: data.email,
+          subject: "You're all set up with DentalExplain",
+          html: `
+            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px;">
+              <div style="margin-bottom: 24px;">
+                <span style="background: #0891b2; color: white; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 15px;">DentalExplain</span>
+              </div>
+              <h2 style="color: #0f2942; font-size: 22px; margin-bottom: 8px;">You're all set up</h2>
+              <p style="color: #475569; font-size: 15px; line-height: 1.6; margin-bottom: 16px;">
+                Hi${data.name ? ` ${data.name}` : ""},<br><br>
+                Your DentalExplain account is ready. You have full access for a <strong>7-day free trial</strong>, ending on <strong>${trialEndDate}</strong>.
+              </p>
+              <p style="color: #475569; font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
+                To log in, go to the link below and enter your email address — we'll send you a secure one-click login link.
+              </p>
+              <a href="${siteUrl}" style="display: inline-block; background: #0891b2; color: white; padding: 13px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Go to DentalExplain</a>
+              <p style="color: #94a3b8; font-size: 13px; margin-top: 24px;">Questions? Just reply to this email and we'll help out.</p>
+            </div>
+          `,
+        });
+      } catch (emailErr) {
+        console.error("Welcome email failed to send:", emailErr);
+        // Don't fail the whole request if the email fails - the practice is still created
+      }
+
       return { statusCode: 200, body: JSON.stringify({ practice: data }) };
     }
 
