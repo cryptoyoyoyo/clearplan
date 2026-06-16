@@ -44,7 +44,7 @@ const LANGUAGES = [
   { value: "Mandarin",   flag: "🇨🇳" },
 ];
 
-const ClearPlanLogo = ({ size = 28 }) => (
+const DentalExplainLogo = ({ size = 28 }) => (
   <svg width={size} height={size} viewBox="0 0 110 110" fill="none">
     <rect width="110" height="110" rx="24" fill="#0891b2"/>
     <rect x="18" y="16" width="76" height="56" rx="13" fill="white" opacity="0.95"/>
@@ -367,10 +367,10 @@ export default function App() {
         <div className={forPrint ? "print-brand" : "brand"}>
           {practiceLogo
             ? <img src={practiceLogo} alt={practiceName} className={forPrint ? "print-logo" : "practice-logo"} />
-            : <ClearPlanLogo size={forPrint ? 22 : 28} />
+            : <DentalExplainLogo size={forPrint ? 22 : 28} />
           }
           <div>
-            <div className={forPrint ? "print-brand-name" : "brand-name"}>{practiceName || "ClearPlan"}</div>
+            <div className={forPrint ? "print-brand-name" : "brand-name"}>{practiceName || "DentalExplain"}</div>
             {!forPrint && <div className="brand-tagline">Patient treatment explainer</div>}
           </div>
         </div>
@@ -379,10 +379,10 @@ export default function App() {
     return (
       <div className={forPrint ? "print-brand" : "brand"}>
         <div className={forPrint ? "" : "brand-logo"}>
-          <ClearPlanLogo size={forPrint ? 22 : 28} />
+          <DentalExplainLogo size={forPrint ? 22 : 28} />
         </div>
         <div>
-          <div className={forPrint ? "print-brand-name" : "brand-name"}>ClearPlan</div>
+          <div className={forPrint ? "print-brand-name" : "brand-name"}>DentalExplain</div>
           {!forPrint && <div className="brand-tagline">Patient treatment explainer</div>}
         </div>
       </div>
@@ -393,7 +393,7 @@ export default function App() {
   if (authChecking) {
     return (
       <div className="auth-screen">
-        <ClearPlanLogo size={40} />
+        <DentalExplainLogo size={40} />
         <p className="auth-checking">Loading…</p>
       </div>
     );
@@ -404,8 +404,8 @@ export default function App() {
     return (
       <div className="auth-screen">
         <div className="auth-card">
-          <div className="auth-logo"><ClearPlanLogo size={44} /></div>
-          <h1 className="auth-title">ClearPlan</h1>
+          <div className="auth-logo"><DentalExplainLogo size={44} /></div>
+          <h1 className="auth-title">DentalExplain</h1>
           <p className="auth-sub">Enter your email to log in</p>
           {authError && <div className="error-msg" style={{marginBottom: 16}}>⚠ {authError}</div>}
           <input
@@ -430,7 +430,7 @@ export default function App() {
     return (
       <div className="auth-screen">
         <div className="auth-card">
-          <div className="auth-logo"><ClearPlanLogo size={44} /></div>
+          <div className="auth-logo"><DentalExplainLogo size={44} /></div>
           <h1 className="auth-title">Check your email</h1>
           <p className="auth-sub">We've sent a login link to <strong>{authEmail}</strong>. Click the link in the email to log in.</p>
           <p className="auth-hint">The link expires in 15 minutes. Check your spam folder if you don't see it.</p>
@@ -447,9 +447,9 @@ export default function App() {
         <header className="header">
           <div className="header-inner">
             <div className="brand">
-              <ClearPlanLogo size={28} />
+              <DentalExplainLogo size={28} />
               <div>
-                <div className="brand-name">ClearPlan</div>
+                <div className="brand-name">DentalExplain</div>
                 <div className="brand-tagline">Admin panel</div>
               </div>
             </div>

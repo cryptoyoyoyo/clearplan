@@ -1,4 +1,4 @@
-# ClearPlan — Patient Treatment Explainer
+# DentalExplain — Patient Treatment Explainer
 
 A web app for dental practices to generate clear, patient-friendly treatment plan explanations using AI.
 
