@@ -73,6 +73,15 @@ export default function App() {
 
   // Check for magic link token in URL or existing session on load
   useEffect(() => {
+    const isAdminRoute = window.location.pathname === "/admin";
+
+    if (isAdminRoute) {
+      // Admin route takes priority - skip token/session checks entirely
+      setAuthView("admin");
+      setAuthChecking(false);
+      return;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (token) {
@@ -80,8 +89,6 @@ export default function App() {
     } else {
       checkSession();
     }
-    // Check if admin route
-    if (window.location.pathname === "/admin") setAuthView("admin");
   }, []);
 
   const verifyToken = async (token) => {
