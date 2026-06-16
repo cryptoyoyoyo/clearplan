@@ -10,3 +10,9 @@
 
 [functions."expire-trials"]
   schedule = "0 2 * * *"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
