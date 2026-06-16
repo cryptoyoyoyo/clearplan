@@ -4,6 +4,7 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
+const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/28EcN79ju4vYeum0HD1ck00";
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -52,7 +53,7 @@ exports.handler = async (event) => {
     }
 
     if (!practice.is_paying && practice.trial_ends_at && new Date(practice.trial_ends_at) < new Date()) {
-      return { statusCode: 403, body: JSON.stringify({ error: "Your free trial has ended. Please subscribe to keep using DentalExplain." }) };
+      return { statusCode: 403, body: JSON.stringify({ error: `Your free trial has ended. Subscribe at ${STRIPE_PAYMENT_LINK} to keep using DentalExplain.` }) };
     }
 
     // Create session token

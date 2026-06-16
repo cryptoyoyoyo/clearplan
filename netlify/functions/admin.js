@@ -8,6 +8,7 @@ const supabase = createClient(
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/28EcN79ju4vYeum0HD1ck00";
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -64,7 +65,8 @@ exports.handler = async (event) => {
                 To log in, go to the link below and enter your email address — we'll send you a secure one-click login link.
               </p>
               <a href="${siteUrl}" style="display: inline-block; background: #0891b2; color: white; padding: 13px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Go to DentalExplain</a>
-              <p style="color: #94a3b8; font-size: 13px; margin-top: 24px;">Questions? Just reply to this email and we'll help out.</p>
+              <p style="color: #94a3b8; font-size: 13px; margin: 24px 0 0;">Questions? Just reply to this email and we'll help out.</p>
+              <p style="color: #94a3b8; font-size: 13px; margin: 8px 0 0;">Want to subscribe before your trial ends? <a href="${STRIPE_PAYMENT_LINK}" style="color: #0e7490;">Set up billing here</a> — £35/month, cancel any time.</p>
             </div>
           `,
         });

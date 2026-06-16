@@ -6,6 +6,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 const resend = new Resend(process.env.RESEND_API_KEY);
+const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/28EcN79ju4vYeum0HD1ck00";
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -34,7 +35,7 @@ exports.handler = async (event) => {
     }
 
     if (!practice.is_paying && practice.trial_ends_at && new Date(practice.trial_ends_at) < new Date()) {
-      return { statusCode: 403, body: JSON.stringify({ error: "Your free trial has ended. Please subscribe to keep using DentalExplain." }) };
+      return { statusCode: 403, body: JSON.stringify({ error: `Your free trial has ended. Subscribe at ${STRIPE_PAYMENT_LINK} to keep using DentalExplain.` }) };
     }
 
     // Generate token
@@ -51,7 +52,7 @@ exports.handler = async (event) => {
     let trialNotice = "";
     if (!practice.is_paying && practice.trial_ends_at) {
       const trialEndDate = new Date(practice.trial_ends_at).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
-      trialNotice = `<p style="color: #0e7490; font-size: 14px; line-height: 1.5; background: #e0f4f8; padding: 12px 16px; border-radius: 8px; margin-bottom: 24px;">Your free trial ends on <strong>${trialEndDate}</strong>.</p>`;
+      trialNotice = `<p style="color: #0e7490; font-size: 14px; line-height: 1.5; background: #e0f4f8; padding: 12px 16px; border-radius: 8px; margin-bottom: 24px;">Your free trial ends on <strong>${trialEndDate}</strong>. <a href="${STRIPE_PAYMENT_LINK}" style="color: #0e7490; font-weight: 600;">Subscribe for £35/month</a> to keep your access after that.</p>`;
     }
 
     // Send email
