@@ -750,7 +750,7 @@ export default function App() {
                 </div>
 
                 <div className="field">
-                  <label className="field-label">Reading level</label>
+                  <label className="field-label">Explanation style</label>
                   <div className="level-grid">
                     {READING_LEVELS.map((l) => (
                       <button
