@@ -45,7 +45,7 @@ exports.handler = async (event) => {
 
     // Send email
     await resend.emails.send({
-      from: "DentalExplain <onboarding@resend.dev>",
+      from: "DentalExplain <hello@dentalexplain.com>",
       to: normalised,
       subject: "Your DentalExplain login link",
       html: `
