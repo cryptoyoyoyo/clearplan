@@ -23,7 +23,7 @@ exports.handler = async (event) => {
     if (action === "list") {
       const { data, error } = await supabase
         .from("practices")
-        .select("id, email, name, is_active, created_at")
+        .select("id, email, name, is_active, is_paying, trial_ends_at, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return { statusCode: 200, body: JSON.stringify({ practices: data }) };
@@ -31,9 +31,34 @@ exports.handler = async (event) => {
 
     if (action === "add") {
       if (!email) return { statusCode: 400, body: JSON.stringify({ error: "Email required" }) };
+      const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
       const { data, error } = await supabase
         .from("practices")
-        .insert({ email: email.toLowerCase().trim(), name: name || "" })
+        .insert({ email: email.toLowerCase().trim(), name: name || "", trial_ends_at: trialEndsAt, is_paying: false })
+        .select()
+        .single();
+      if (error) throw error;
+      return { statusCode: 200, body: JSON.stringify({ practice: data }) };
+    }
+
+    if (action === "markPaying") {
+      const { data, error } = await supabase
+        .from("practices")
+        .update({ is_paying: true })
+        .eq("id", practiceId)
+        .select()
+        .single();
+      if (error) throw error;
+      return { statusCode: 200, body: JSON.stringify({ practice: data }) };
+    }
+
+    if (action === "extendTrial") {
+      const days = JSON.parse(event.body).days || 7;
+      const trialEndsAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from("practices")
+        .update({ trial_ends_at: trialEndsAt })
+        .eq("id", practiceId)
         .select()
         .single();
       if (error) throw error;

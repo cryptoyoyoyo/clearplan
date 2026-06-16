@@ -39,9 +39,21 @@ exports.handler = async (event) => {
     // Get practice details
     const { data: practice } = await supabase
       .from("practices")
-      .select("id, name, email")
+      .select("id, name, email, is_active, is_paying, trial_ends_at")
       .eq("email", link.email)
       .single();
+
+    if (!practice) {
+      return { statusCode: 403, body: JSON.stringify({ error: "This email isn't registered. Please contact DentalExplain to get access." }) };
+    }
+
+    if (!practice.is_active) {
+      return { statusCode: 403, body: JSON.stringify({ error: "This account has been disabled. Please contact DentalExplain." }) };
+    }
+
+    if (!practice.is_paying && practice.trial_ends_at && new Date(practice.trial_ends_at) < new Date()) {
+      return { statusCode: 403, body: JSON.stringify({ error: "Your free trial has ended. Please subscribe to keep using DentalExplain." }) };
+    }
 
     // Create session token
     const sessionToken = require("crypto").randomBytes(32).toString("hex");
