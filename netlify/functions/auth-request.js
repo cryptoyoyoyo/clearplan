@@ -26,11 +26,11 @@ exports.handler = async (event) => {
       .single();
 
     if (error || !practice) {
-      return { statusCode: 403, body: JSON.stringify({ error: "This email isn't registered. Please contact ClearPlan to get access." }) };
+      return { statusCode: 403, body: JSON.stringify({ error: "This email isn't registered. Please contact DentalExplain to get access." }) };
     }
 
     if (!practice.is_active) {
-      return { statusCode: 403, body: JSON.stringify({ error: "This account has been disabled. Please contact ClearPlan." }) };
+      return { statusCode: 403, body: JSON.stringify({ error: "This account has been disabled. Please contact DentalExplain." }) };
     }
 
     // Generate token
@@ -45,20 +45,20 @@ exports.handler = async (event) => {
 
     // Send email
     await resend.emails.send({
-      from: "ClearPlan <onboarding@resend.dev>",
+      from: "DentalExplain <onboarding@resend.dev>",
       to: normalised,
-      subject: "Your ClearPlan login link",
+      subject: "Your DentalExplain login link",
       html: `
         <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px;">
           <div style="margin-bottom: 24px;">
-            <span style="background: #0891b2; color: white; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 15px;">ClearPlan</span>
+            <span style="background: #0891b2; color: white; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 15px;">DentalExplain</span>
           </div>
           <h2 style="color: #0f2942; font-size: 22px; margin-bottom: 8px;">Your login link</h2>
           <p style="color: #475569; font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
             Hi${practice.name ? ` ${practice.name}` : ""},<br><br>
-            Click the button below to log in to ClearPlan. This link expires in 15 minutes.
+            Click the button below to log in to DentalExplain. This link expires in 15 minutes.
           </p>
-          <a href="${magicLink}" style="display: inline-block; background: #0891b2; color: white; padding: 13px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Log in to ClearPlan</a>
+          <a href="${magicLink}" style="display: inline-block; background: #0891b2; color: white; padding: 13px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Log in to DentalExplain</a>
           <p style="color: #94a3b8; font-size: 13px; margin-top: 24px;">If you didn't request this, you can safely ignore this email.</p>
         </div>
       `,
