@@ -215,6 +215,22 @@ export default function App() {
     } catch (err) {}
   };
 
+  const adminMarkPaying = async (id) => {
+    try {
+      await adminCall("markPaying", { practiceId: id });
+      const data = await adminCall("list");
+      setPractices(data.practices);
+    } catch (err) {}
+  };
+
+  const adminExtendTrial = async (id) => {
+    try {
+      await adminCall("extendTrial", { practiceId: id, days: 7 });
+      const data = await adminCall("list");
+      setPractices(data.practices);
+    } catch (err) {}
+  };
+
   // Practice branding
   const [practiceName, setPracticeName]   = useState(() => localStorage.getItem("cp_practiceName") || "");
   const [practiceLogo, setPracticeLogo]   = useState(() => localStorage.getItem("cp_practiceLogo") || "");
@@ -505,12 +521,25 @@ export default function App() {
                 <div className="form-header"><h2 className="form-title">All practices ({practices.length})</h2></div>
                 <div className="form-body">
                   {practices.length === 0 && <p style={{color: "var(--text-3)"}}>No practices yet.</p>}
-                  {practices.map(p => (
+                  {practices.map(p => {
+                    const trialDate = p.trial_ends_at ? new Date(p.trial_ends_at) : null;
+                    const trialExpired = trialDate && trialDate < new Date();
+                    return (
                     <div key={p.id} className="practice-row">
                       <div className="practice-info">
                         <div className="practice-name">{p.name || "—"}</div>
                         <div className="practice-email">{p.email}</div>
                         <div className="practice-date">Added {new Date(p.created_at).toLocaleDateString("en-GB")}</div>
+                        {p.is_paying ? (
+                          <div className="practice-date" style={{color: "#0e7490", fontWeight: 600}}>Paying customer</div>
+                        ) : trialDate ? (
+                          <div className="practice-date" style={{color: trialExpired ? "#b91c1c" : "#475569"}}>
+                            {trialExpired ? "Trial expired " : "Trial ends "}
+                            {trialDate.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                          </div>
+                        ) : (
+                          <div className="practice-date">No trial limit set</div>
+                        )}
                       </div>
                       <div className="practice-actions">
                         <span className={`practice-status ${p.is_active ? "active" : "inactive"}`}>
@@ -519,10 +548,17 @@ export default function App() {
                         <button className="admin-btn" onClick={() => adminToggle(p.id)}>
                           {p.is_active ? "Disable" : "Enable"}
                         </button>
+                        {!p.is_paying && (
+                          <button className="admin-btn" onClick={() => adminMarkPaying(p.id)}>Mark as paying</button>
+                        )}
+                        {!p.is_paying && (
+                          <button className="admin-btn" onClick={() => adminExtendTrial(p.id)}>+7 day trial</button>
+                        )}
                         <button className="admin-btn admin-btn-danger" onClick={() => adminRemove(p.id)}>Remove</button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
