@@ -67,6 +67,14 @@ exports.handler = async (event) => {
       used: false,
     });
 
+    // Log this login for the admin activity dashboard.
+    // Wrapped so a logging failure never blocks a real login.
+    try {
+      await supabase.from("login_events").insert({ practice_id: practice.id });
+    } catch (logErr) {
+      console.error("Failed to log login event:", logErr);
+    }
+
     return {
       statusCode: 200,
       body: JSON.stringify({
