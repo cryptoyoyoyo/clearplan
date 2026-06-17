@@ -32,12 +32,16 @@ exports.handler = async (event) => {
       .eq("email", link.email)
       .single();
 
-    if (!practice || !practice.is_active) {
+    if (!practice) {
       return { statusCode: 401, body: JSON.stringify({ error: "Account disabled" }) };
     }
 
     if (!practice.is_paying && practice.trial_ends_at && new Date(practice.trial_ends_at) < new Date()) {
       return { statusCode: 401, body: JSON.stringify({ error: `Your free trial has ended. Subscribe at ${STRIPE_PAYMENT_LINK} to keep using DentalExplain.` }) };
+    }
+
+    if (!practice.is_active) {
+      return { statusCode: 401, body: JSON.stringify({ error: "Account disabled" }) };
     }
 
     return {

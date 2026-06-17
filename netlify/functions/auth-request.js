@@ -30,12 +30,15 @@ exports.handler = async (event) => {
       return { statusCode: 403, body: JSON.stringify({ error: "This email isn't registered. Please contact DentalExplain to get access." }) };
     }
 
-    if (!practice.is_active) {
-      return { statusCode: 403, body: JSON.stringify({ error: "This account has been disabled. Please contact DentalExplain." }) };
-    }
-
+    // Check trial expiry first - if that's the reason access is blocked (whether is_active
+    // was flipped by the scheduled job or the account is simply still inactive past trial end),
+    // show the subscribe message rather than the generic "disabled" message.
     if (!practice.is_paying && practice.trial_ends_at && new Date(practice.trial_ends_at) < new Date()) {
       return { statusCode: 403, body: JSON.stringify({ error: `Your free trial has ended. Subscribe at ${STRIPE_PAYMENT_LINK} to keep using DentalExplain.` }) };
+    }
+
+    if (!practice.is_active) {
+      return { statusCode: 403, body: JSON.stringify({ error: "This account has been disabled. Please contact DentalExplain." }) };
     }
 
     // Generate token
