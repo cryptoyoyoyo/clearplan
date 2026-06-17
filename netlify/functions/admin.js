@@ -29,7 +29,40 @@ exports.handler = async (event) => {
         .select("id, email, name, is_active, is_paying, trial_ends_at, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return { statusCode: 200, body: JSON.stringify({ practices: data }) };
+
+      // Pull login and report activity for all practices in two queries,
+      // rather than one query per practice, to keep this fast as the list grows.
+      const practiceIds = data.map((p) => p.id);
+
+      const { data: logins, error: loginsError } = await supabase
+        .from("login_events")
+        .select("practice_id, logged_in_at")
+        .in("practice_id", practiceIds);
+      if (loginsError) throw loginsError;
+
+      const { data: reports, error: reportsError } = await supabase
+        .from("report_events")
+        .select("practice_id, created_at")
+        .in("practice_id", practiceIds);
+      if (reportsError) throw reportsError;
+
+      const practices = data.map((practice) => {
+        const practiceLogins = logins.filter((l) => l.practice_id === practice.id);
+        const practiceReports = reports.filter((r) => r.practice_id === practice.id);
+
+        const lastLogin = practiceLogins.length
+          ? practiceLogins.reduce((latest, l) => (l.logged_in_at > latest ? l.logged_in_at : latest), practiceLogins[0].logged_in_at)
+          : null;
+
+        return {
+          ...practice,
+          loginCount: practiceLogins.length,
+          lastLoginAt: lastLogin,
+          reportCount: practiceReports.length,
+        };
+      });
+
+      return { statusCode: 200, body: JSON.stringify({ practices }) };
     }
 
     if (action === "add") {
@@ -76,6 +109,31 @@ exports.handler = async (event) => {
       }
 
       return { statusCode: 200, body: JSON.stringify({ practice: data }) };
+    }
+
+    if (action === "getActivity") {
+      if (!practiceId) return { statusCode: 400, body: JSON.stringify({ error: "practiceId required" }) };
+
+      const { data: recentLogins, error: loginsError } = await supabase
+        .from("login_events")
+        .select("logged_in_at")
+        .eq("practice_id", practiceId)
+        .order("logged_in_at", { ascending: false })
+        .limit(5);
+      if (loginsError) throw loginsError;
+
+      const { data: recentReports, error: reportsError } = await supabase
+        .from("report_events")
+        .select("treatment, created_at")
+        .eq("practice_id", practiceId)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (reportsError) throw reportsError;
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ recentLogins, recentReports }),
+      };
     }
 
     if (action === "markPaying") {
