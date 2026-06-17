@@ -56,13 +56,12 @@ const DentalExplainLogo = ({ size = 28 }) => (
 export default function App() {
   // Auth state
   const [session, setSession]             = useState(null);
-  const [authView, setAuthView]           = useState("login"); // "login" | "sent" | "confirm" | "app" | "admin"
+  const [authView, setAuthView]           = useState("login"); // "login" | "sent" | "app" | "admin"
   const [authEmail, setAuthEmail]         = useState("");
   const [authLoading, setAuthLoading]     = useState(false);
   const [authError, setAuthError]         = useState(null);
   const [authChecking, setAuthChecking]   = useState(true);
   const [pendingToken, setPendingToken]   = useState(null);
-  const [confirmLoading, setConfirmLoading] = useState(false);
 
   // Admin state
   const [adminPassword, setAdminPassword] = useState("");
@@ -88,9 +87,6 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (token) {
-      // Don't auto-verify — store the token and show a confirm screen.
-      // This stops email security scanners (e.g. Outlook Safe Links) from
-      // consuming the one-time token before the user actually clicks it.
       setPendingToken(token);
       setAuthView("confirm");
       setAuthChecking(false);
@@ -100,6 +96,8 @@ export default function App() {
   }, []);
 
   const verifyToken = async (token) => {
+    setAuthLoading(true);
+    setAuthError(null);
     try {
       const res = await fetch("/.netlify/functions/auth-verify", {
         method: "POST",
@@ -118,14 +116,8 @@ export default function App() {
       setAuthView("login");
     } finally {
       setAuthChecking(false);
+      setAuthLoading(false);
     }
-  };
-
-  const handleConfirmLogin = async () => {
-    if (!pendingToken) return;
-    setConfirmLoading(true);
-    await verifyToken(pendingToken);
-    setConfirmLoading(false);
   };
 
   const checkSession = async () => {
@@ -499,23 +491,17 @@ export default function App() {
     );
   }
 
-  // ── Auth: confirm login (user must click — protects against email link scanners) ──
+  // ── Auth: confirm login (button click required, protects against email link-scanners) ──
   if (authView === "confirm") {
     return (
       <div className="auth-screen">
         <div className="auth-card">
           <div className="auth-logo"><DentalExplainLogo size={44} /></div>
-          <h1 className="auth-title">Confirm login</h1>
-          <p className="auth-sub">Click below to finish logging in to DentalExplain.</p>
+          <h1 className="auth-title">DentalExplain</h1>
+          <p className="auth-sub">Click below to finish logging in.</p>
           {authError && <div className="error-msg" style={{marginBottom: 16}}>⚠ {authError}</div>}
-          <button className="generate-btn" onClick={handleConfirmLogin} disabled={confirmLoading}>
-            {confirmLoading ? <><span className="spinner" /> Logging in…</> : "Log in"}
-          </button>
-          <button
-            className="auth-back"
-            onClick={() => { setAuthView("login"); setAuthError(null); window.history.replaceState({}, "", "/"); }}
-          >
-            ← Back to login
+          <button className="generate-btn" onClick={() => verifyToken(pendingToken)} disabled={authLoading}>
+            {authLoading ? <><span className="spinner" /> Logging in…</> : "Confirm and log in"}
           </button>
         </div>
       </div>
