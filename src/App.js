@@ -72,6 +72,9 @@ export default function App() {
   const [newName, setNewName]             = useState("");
   const [newPms, setNewPms]               = useState("");
   const [adminMsg, setAdminMsg]           = useState(null);
+  const [expandedPracticeId, setExpandedPracticeId] = useState(null);
+  const [activityData, setActivityData]   = useState(null);
+  const [activityLoading, setActivityLoading] = useState(false);
 
   // Check for magic link token in URL or existing session on load
   useEffect(() => {
@@ -237,6 +240,25 @@ export default function App() {
       const data = await adminCall("list");
       setPractices(data.practices);
     } catch (err) {}
+  };
+
+  const adminToggleActivity = async (id) => {
+    if (expandedPracticeId === id) {
+      setExpandedPracticeId(null);
+      setActivityData(null);
+      return;
+    }
+    setExpandedPracticeId(id);
+    setActivityData(null);
+    setActivityLoading(true);
+    try {
+      const data = await adminCall("getActivity", { practiceId: id });
+      setActivityData(data);
+    } catch (err) {
+      setActivityData({ error: err.message });
+    } finally {
+      setActivityLoading(false);
+    }
   };
 
   // Practice branding
@@ -570,37 +592,84 @@ export default function App() {
                     const trialDate = p.trial_ends_at ? new Date(p.trial_ends_at) : null;
                     const trialExpired = trialDate && trialDate < new Date();
                     return (
-                    <div key={p.id} className="practice-row">
-                      <div className="practice-info">
-                        <div className="practice-name">{p.name || "—"}</div>
-                        <div className="practice-email">{p.email}</div>
-                        <div className="practice-date">Added {new Date(p.created_at).toLocaleDateString("en-GB")}</div>
-                        {p.is_paying ? (
-                          <div className="practice-date" style={{color: "#0e7490", fontWeight: 600}}>Paying customer</div>
-                        ) : trialDate ? (
-                          <div className="practice-date" style={{color: trialExpired ? "#b91c1c" : "#475569"}}>
-                            {trialExpired ? "Trial expired " : "Trial ends "}
-                            {trialDate.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                    <div key={p.id} className="practice-row" style={{flexDirection: "column", alignItems: "stretch"}}>
+                      <div style={{display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%"}}>
+                        <div className="practice-info">
+                          <div className="practice-name">{p.name || "—"}</div>
+                          <div className="practice-email">{p.email}</div>
+                          <div className="practice-date">Added {new Date(p.created_at).toLocaleDateString("en-GB")}</div>
+                          {p.is_paying ? (
+                            <div className="practice-date" style={{color: "#0e7490", fontWeight: 600}}>Paying customer</div>
+                          ) : trialDate ? (
+                            <div className="practice-date" style={{color: trialExpired ? "#b91c1c" : "#475569"}}>
+                              {trialExpired ? "Trial expired " : "Trial ends "}
+                              {trialDate.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                            </div>
+                          ) : (
+                            <div className="practice-date">No trial limit set</div>
+                          )}
+                          <div className="practice-date" style={{marginTop: 6}}>
+                            {p.lastLoginAt
+                              ? `Last login ${new Date(p.lastLoginAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`
+                              : "Never logged in"}
+                            {" · "}{p.loginCount || 0} login{p.loginCount === 1 ? "" : "s"}
+                            {" · "}{p.reportCount || 0} report{p.reportCount === 1 ? "" : "s"} generated
                           </div>
-                        ) : (
-                          <div className="practice-date">No trial limit set</div>
-                        )}
+                        </div>
+                        <div className="practice-actions">
+                          <span className={`practice-status ${p.is_active ? "active" : "inactive"}`}>
+                            {p.is_active ? "Active" : "Disabled"}
+                          </span>
+                          <button className="admin-btn" onClick={() => adminToggleActivity(p.id)}>
+                            {expandedPracticeId === p.id ? "Hide activity" : "View activity"}
+                          </button>
+                          <button className="admin-btn" onClick={() => adminToggle(p.id)}>
+                            {p.is_active ? "Disable" : "Enable"}
+                          </button>
+                          {!p.is_paying && (
+                            <button className="admin-btn" onClick={() => adminMarkPaying(p.id)}>Mark as paying</button>
+                          )}
+                          {!p.is_paying && (
+                            <button className="admin-btn" onClick={() => adminExtendTrial(p.id)}>+7 day trial</button>
+                          )}
+                          <button className="admin-btn admin-btn-danger" onClick={() => adminRemove(p.id)}>Remove</button>
+                        </div>
                       </div>
-                      <div className="practice-actions">
-                        <span className={`practice-status ${p.is_active ? "active" : "inactive"}`}>
-                          {p.is_active ? "Active" : "Disabled"}
-                        </span>
-                        <button className="admin-btn" onClick={() => adminToggle(p.id)}>
-                          {p.is_active ? "Disable" : "Enable"}
-                        </button>
-                        {!p.is_paying && (
-                          <button className="admin-btn" onClick={() => adminMarkPaying(p.id)}>Mark as paying</button>
-                        )}
-                        {!p.is_paying && (
-                          <button className="admin-btn" onClick={() => adminExtendTrial(p.id)}>+7 day trial</button>
-                        )}
-                        <button className="admin-btn admin-btn-danger" onClick={() => adminRemove(p.id)}>Remove</button>
-                      </div>
+
+                      {expandedPracticeId === p.id && (
+                        <div style={{marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border)", width: "100%"}}>
+                          {activityLoading && <p style={{color: "var(--text-3)", margin: 0}}>Loading activity…</p>}
+                          {activityData?.error && <p style={{color: "#b91c1c", margin: 0}}>Error: {activityData.error}</p>}
+                          {activityData && !activityData.error && (
+                            <div style={{display: "flex", gap: 32, flexWrap: "wrap"}}>
+                              <div>
+                                <div style={{fontWeight: 600, marginBottom: 6, fontSize: "0.9rem"}}>Recent logins</div>
+                                {activityData.recentLogins.length === 0 ? (
+                                  <p style={{color: "var(--text-3)", margin: 0, fontSize: "0.85rem"}}>No logins yet.</p>
+                                ) : (
+                                  <ul style={{margin: 0, paddingLeft: 18, fontSize: "0.85rem", color: "var(--text-2)"}}>
+                                    {activityData.recentLogins.map((l, i) => (
+                                      <li key={i}>{new Date(l.logged_in_at).toLocaleString("en-GB")}</li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                              <div>
+                                <div style={{fontWeight: 600, marginBottom: 6, fontSize: "0.9rem"}}>Recent reports</div>
+                                {activityData.recentReports.length === 0 ? (
+                                  <p style={{color: "var(--text-3)", margin: 0, fontSize: "0.85rem"}}>No reports yet.</p>
+                                ) : (
+                                  <ul style={{margin: 0, paddingLeft: 18, fontSize: "0.85rem", color: "var(--text-2)"}}>
+                                    {activityData.recentReports.map((r, i) => (
+                                      <li key={i}>{r.treatment} — {new Date(r.created_at).toLocaleString("en-GB")}</li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     );
                   })}
