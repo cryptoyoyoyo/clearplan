@@ -69,6 +69,7 @@ export default function App() {
   const [practices, setPractices]         = useState([]);
   const [newEmail, setNewEmail]           = useState("");
   const [newName, setNewName]             = useState("");
+  const [newPms, setNewPms]               = useState("");
   const [adminMsg, setAdminMsg]           = useState(null);
 
   // Check for magic link token in URL or existing session on load
@@ -129,6 +130,7 @@ export default function App() {
       } else {
         localStorage.removeItem("cp_session");
         localStorage.removeItem("cp_practice");
+        if (data.error) setAuthError(data.error);
       }
     } catch (err) {}
     setAuthChecking(false);
@@ -424,13 +426,33 @@ export default function App() {
 
   // ── Auth: login screen ──
   if (authView === "login") {
+    // Detect trial-expired errors and pull out the Stripe link to render as a real button
+    const stripeLinkMatch = authError && authError.match(/(https:\/\/buy\.stripe\.com\/\S+)/);
+    const trialExpiredMessage = stripeLinkMatch
+      ? authError.replace(stripeLinkMatch[0], "").replace(/\s+/g, " ").trim()
+      : null;
+
     return (
       <div className="auth-screen">
         <div className="auth-card">
           <div className="auth-logo"><DentalExplainLogo size={44} /></div>
           <h1 className="auth-title">DentalExplain</h1>
           <p className="auth-sub">Enter your email to log in</p>
-          {authError && <div className="error-msg" style={{marginBottom: 16}}>⚠ {authError}</div>}
+          {authError && !stripeLinkMatch && <div className="error-msg" style={{marginBottom: 16}}>⚠ {authError}</div>}
+          {authError && stripeLinkMatch && (
+            <div className="error-msg" style={{marginBottom: 16, display: "flex", flexDirection: "column", gap: 12}}>
+              <span>⚠ {trialExpiredMessage}</span>
+              <a
+                href={stripeLinkMatch[0]}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="generate-btn"
+                style={{textAlign: "center", textDecoration: "none", display: "block"}}
+              >
+                Subscribe for £35/month
+              </a>
+            </div>
+          )}
           <input
             className="field-input"
             type="email"
