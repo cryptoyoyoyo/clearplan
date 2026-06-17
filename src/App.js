@@ -56,11 +56,13 @@ const DentalExplainLogo = ({ size = 28 }) => (
 export default function App() {
   // Auth state
   const [session, setSession]             = useState(null);
-  const [authView, setAuthView]           = useState("login"); // "login" | "sent" | "app" | "admin"
+  const [authView, setAuthView]           = useState("login"); // "login" | "sent" | "confirm" | "app" | "admin"
   const [authEmail, setAuthEmail]         = useState("");
   const [authLoading, setAuthLoading]     = useState(false);
   const [authError, setAuthError]         = useState(null);
   const [authChecking, setAuthChecking]   = useState(true);
+  const [pendingToken, setPendingToken]   = useState(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   // Admin state
   const [adminPassword, setAdminPassword] = useState("");
@@ -86,7 +88,12 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (token) {
-      verifyToken(token);
+      // Don't auto-verify — store the token and show a confirm screen.
+      // This stops email security scanners (e.g. Outlook Safe Links) from
+      // consuming the one-time token before the user actually clicks it.
+      setPendingToken(token);
+      setAuthView("confirm");
+      setAuthChecking(false);
     } else {
       checkSession();
     }
@@ -112,6 +119,13 @@ export default function App() {
     } finally {
       setAuthChecking(false);
     }
+  };
+
+  const handleConfirmLogin = async () => {
+    if (!pendingToken) return;
+    setConfirmLoading(true);
+    await verifyToken(pendingToken);
+    setConfirmLoading(false);
   };
 
   const checkSession = async () => {
@@ -480,6 +494,29 @@ export default function App() {
           <p className="auth-sub">We've sent a login link to <strong>{authEmail}</strong>. Click the link in the email to log in.</p>
           <p className="auth-hint">The link expires in 15 minutes. Check your spam folder if you don't see it.</p>
           <button className="auth-back" onClick={() => { setAuthView("login"); setAuthError(null); }}>← Try a different email</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Auth: confirm login (user must click — protects against email link scanners) ──
+  if (authView === "confirm") {
+    return (
+      <div className="auth-screen">
+        <div className="auth-card">
+          <div className="auth-logo"><DentalExplainLogo size={44} /></div>
+          <h1 className="auth-title">Confirm login</h1>
+          <p className="auth-sub">Click below to finish logging in to DentalExplain.</p>
+          {authError && <div className="error-msg" style={{marginBottom: 16}}>⚠ {authError}</div>}
+          <button className="generate-btn" onClick={handleConfirmLogin} disabled={confirmLoading}>
+            {confirmLoading ? <><span className="spinner" /> Logging in…</> : "Log in"}
+          </button>
+          <button
+            className="auth-back"
+            onClick={() => { setAuthView("login"); setAuthError(null); window.history.replaceState({}, "", "/"); }}
+          >
+            ← Back to login
+          </button>
         </div>
       </div>
     );
