@@ -37,7 +37,7 @@ exports.handler = async (event) => {
     }
 
     if (!practice.is_paying && practice.trial_ends_at && new Date(practice.trial_ends_at) < new Date()) {
-      return { statusCode: 401, body: JSON.stringify({ error: `Your free trial has ended. Subscribe at ${STRIPE_PAYMENT_LINK} to keep using DentalExplain.` }) };
+      return { statusCode: 401, body: JSON.stringify({ error: `Your free trial has ended. To keep using DentalExplain, subscribe here: ${STRIPE_PAYMENT_LINK}` }) };
     }
 
     if (!practice.is_active) {

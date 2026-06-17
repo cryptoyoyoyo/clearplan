@@ -34,7 +34,7 @@ exports.handler = async (event) => {
     // was flipped by the scheduled job or the account is simply still inactive past trial end),
     // show the subscribe message rather than the generic "disabled" message.
     if (!practice.is_paying && practice.trial_ends_at && new Date(practice.trial_ends_at) < new Date()) {
-      return { statusCode: 403, body: JSON.stringify({ error: `Your free trial has ended. Subscribe at ${STRIPE_PAYMENT_LINK} to keep using DentalExplain.` }) };
+      return { statusCode: 403, body: JSON.stringify({ error: `Your free trial has ended. To keep using DentalExplain, subscribe here: ${STRIPE_PAYMENT_LINK}` }) };
     }
 
     if (!practice.is_active) {
