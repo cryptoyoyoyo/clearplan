@@ -1,6 +1,11 @@
 const Anthropic = require("@anthropic-ai/sdk");
+const { createClient } = require("@supabase/supabase-js");
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -8,7 +13,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { treatment, patientName, readingLevel, additionalNotes, language = "English" } = JSON.parse(event.body);
+    const { treatment, patientName, readingLevel, additionalNotes, language = "English", tone, practiceId } = JSON.parse(event.body);
 
     if (!treatment) {
       return { statusCode: 400, body: JSON.stringify({ error: "Treatment is required" }) };
@@ -51,6 +56,16 @@ Keep it warm, reassuring and professional. Do not include any pricing informatio
     });
 
     const explanation = message.content[0].text;
+
+    // Log this report for the admin activity dashboard.
+    // Wrapped so a logging failure never blocks the explanation being returned.
+    if (practiceId) {
+      try {
+        await supabase.from("report_events").insert({ practice_id: practiceId, treatment });
+      } catch (logErr) {
+        console.error("Failed to log report event:", logErr);
+      }
+    }
 
     return {
       statusCode: 200,
